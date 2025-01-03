@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}创建包裹{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title">创建包裹</h2>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" class="card">
+        {% csrf_token %}
+        <div class="card-body">
+            <!-- 订单信息 -->
+            <div class="mb-3">
+                <h3 class="card-title">订单信息</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">订单号</label>
+                            <div class="form-control-plaintext">{{ order.order_no }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">店铺</label>
+                            <div class="form-control-plaintext">{{ order.shop.name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">收件人</label>
+                            <div class="form-control-plaintext">{{ order.recipient_name }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">地址</label>
+                            <div class="form-control-plaintext">
+                                {{ order.recipient_state }} {{ order.recipient_city }} {{ order.recipient_address }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 包裹信息 -->
+            <div class="mb-3">
+                <h3 class="card-title">包裹信息</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">发货仓库</label>
+                            <select name="warehouse" class="form-select" required>
+                                <option value="">请选择仓库</option>
+                                {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">物流服务</label>
+                            <select name="service" class="form-select" required>
+                                <option value="">请选择物流服务</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}">{{ service }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">跟踪号</label>
+                            <input type="text" name="tracking_no" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">重量(kg)</label>
+                            <input type="number" name="weight" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">长(cm)</label>
+                                    <input type="number" name="length" class="form-control" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">宽(cm)</label>
+                                    <input type="number" name="width" class="form-control" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">高(cm)</label>
+                                    <input type="number" name="height" class="form-control" step="0.1" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">运费</label>
+                            <input type="number" name="shipping_fee" class="form-control" step="0.01" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 包裹物品 -->
+            <div class="mb-3">
+                <h3 class="card-title">包裹物品</h3>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th class="text-center">数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.cart_set.all %}
+                            <tr>
+                                <td>{{ item.sku.sku_code }}</td>
+                                <td>{{ item.sku.sku_name }}</td>
+                                <td class="text-center">{{ item.qty }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer text-end">
+            <a href="{% url 'trade:order_detail' order.id %}" class="btn btn-link">返回订单</a>
+            <button type="submit" class="btn btn-primary">创建包裹</button>
+        </div>
+    </form>
+</div>
+
+{% block extra_scripts %}
+<script>
+// 计算体积重
+function calculateVolumeWeight() {
+    const length = parseFloat(document.querySelector('[name=length]').value) || 0;
+    const width = parseFloat(document.querySelector('[name=width]').value) || 0;
+    const height = parseFloat(document.querySelector('[name=height]').value) || 0;
+    const volumeWeight = (length * width * height) / 6000;
+    return volumeWeight;
+}
+
+// 更新运费
+function updateShippingFee() {
+    const serviceSelect = document.querySelector('[name=service]');
+    const weightInput = document.querySelector('[name=weight]');
+    const shippingFeeInput = document.querySelector('[name=shipping_fee]');
+    
+    if (serviceSelect.value && weightInput.value) {
+        const service = services.find(s => s.id === parseInt(serviceSelect.value));
+        const weight = parseFloat(weightInput.value);
+        const volumeWeight = calculateVolumeWeight();
+        const chargedWeight = Math.max(weight, volumeWeight);
+        
+        if (service) {
+            const shippingFee = service.base_fee * chargedWeight;
+            shippingFeeInput.value = shippingFee.toFixed(2);
+        }
+    }
+}
+
+// 监听输入变化
+document.querySelector('[name=service]').addEventListener('change', updateShippingFee);
+document.querySelector('[name=weight]').addEventListener('input', updateShippingFee);
+document.querySelector('[name=length]').addEventListener('input', updateShippingFee);
+document.querySelector('[name=width]').addEventListener('input', updateShippingFee);
+document.querySelector('[name=height]').addEventListener('input', updateShippingFee);
+</script>
+{% endblock %}
+
+{% endblock %} 

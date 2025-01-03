@@ -1,37 +1,176 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}主页{% endblock %}
+
 {% block content %}
-
-
-    <div class="page-body">
-
-        <div class="container-xl">
-            <div class="row row-deck row-cards">
-
-                {% include 'layouts/widget/_sticker.html' %}
-
-                {% include 'layouts/widget/_tag.html' %}
-
-                {% include 'layouts/widget/_map.html' %}
-
-                {% include 'layouts/widget/_tri-board.html' %}
-
-                {% include 'layouts/widget/_one-line.html' %}
-
-                {% include 'layouts/widget/_twi-board.html' %}
-
-                {% include 'layouts/widget/_table.html' %}
-
-
-
-
-
-
-
-
+<div class="page-body">
+    <div class="container-xl">
+        <!-- 页面标题 -->
+        <div class="page-header d-print-none">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h2 class="page-title">
+                        仪表盘
+                    </h2>
+                </div>
             </div>
         </div>
-
+        
+        <!-- 统计卡片 -->
+        <div class="row row-deck row-cards">
+            <!-- 订单统计 -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">待处理订单</div>
+                        </div>
+                        <div class="h1 mb-3">{{ order_stats.pending_count }}</div>
+                        <div class="d-flex mb-2">
+                            <div>今日订单: {{ order_stats.today_order_count }}</div>
+                        </div>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-primary" style="width: {{ order_stats.today_order_count }}%" role="progressbar" aria-valuenow="{{ order_stats.today_order_count }}" aria-valuemin="0" aria-valuemax="100">
+                                <span class="visually-hidden">{{ order_stats.today_order_count }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 采购统计 -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">待采购订单</div>
+                        </div>
+                        <div class="h1 mb-3">{{ purchase_stats.pending_count }}</div>
+                        <div class="d-flex mb-2">
+                            <div>待付款: {{ purchase_stats.pending_payment_count }}</div>
+                            <div class="ms-auto">
+                                <span class="text-green d-inline-flex align-items-center lh-1">
+                                    待入库: {{ purchase_stats.pending_storage_count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 库存统计 -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">库存预警</div>
+                        </div>
+                        <div class="h1 mb-3">{{ stock_stats.out_of_stock_count }}</div>
+                        <div class="d-flex mb-2">
+                            <div>低库存: {{ stock_stats.low_stock_count }}</div>
+                            <div class="ms-auto">
+                                <span class="text-yellow d-inline-flex align-items-center lh-1">
+                                    SKU总数: {{ stock_stats.total_sku_count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 月度订单对比 -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">本月订单</div>
+                        </div>
+                        <div class="h1 mb-3">{{ order_stats.month_order_count }}</div>
+                        <div class="d-flex mb-2">
+                            <div>环比: 
+                                {% if order_stats.last_month_order_count > 0 %}
+                                {{ order_stats.month_order_count|subtract:order_stats.last_month_order_count|divide:order_stats.last_month_order_count|multiply:100|floatformat:1 }}%
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            <div class="ms-auto">
+                                <span class="text-blue d-inline-flex align-items-center lh-1">
+                                    上月: {{ order_stats.last_month_order_count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 最近订单和采购单 -->
+        <div class="row mt-3">
+            <!-- 最近订单 -->
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">最近订单</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table card-table table-vcenter">
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>状态</th>
+                                    <th>金额</th>
+                                    <th>创建时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>{{ order.order_no }}</td>
+                                    <td>{{ order.get_status_display }}</td>
+                                    <td>{{ order.paid_amount }}</td>
+                                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近采购单 -->
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">最近采购单</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table card-table table-vcenter">
+                            <thead>
+                                <tr>
+                                    <th>采购单号</th>
+                                    <th>状态</th>
+                                    <th>金额</th>
+                                    <th>创建时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in recent_purchases %}
+                                <tr>
+                                    <td>{{ purchase.purchase_order_number }}</td>
+                                    <td>{{ purchase.get_status_display }}</td>
+                                    <td>{{ purchase.total_amount }}</td>
+                                    <td>{{ purchase.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-
+</div>
 {% endblock %}

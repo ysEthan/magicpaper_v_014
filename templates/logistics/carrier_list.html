@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}物流服务商{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title">物流服务商</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{% url 'logistics:create_carrier' %}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        新增服务商
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>服务商名称</th>
+                        <th>代码</th>
+                        <th>官网</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th class="w-1"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for carrier in carriers %}
+                    <tr>
+                        <td>{{ carrier.name }}</td>
+                        <td>{{ carrier.code }}</td>
+                        <td>
+                            {% if carrier.website %}
+                            <a href="{{ carrier.website }}" target="_blank">访问</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ carrier.is_active|yesno:'success,secondary' }}">
+                                {{ carrier.is_active|yesno:'启用,禁用' }}
+                            </span>
+                        </td>
+                        <td>{{ carrier.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="btn-list flex-nowrap">
+                                <a href="{% url 'logistics:edit_carrier' carrier.id %}" class="btn btn-white btn-sm">
+                                    编辑
+                                </a>
+                                <form method="post" action="{% url 'logistics:toggle_carrier' carrier.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-white btn-sm">
+                                        {{ carrier.is_active|yesno:'禁用,启用' }}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">暂无数据</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

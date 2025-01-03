@@ -1,30 +1,46 @@
-<div class="row g-2">
-
-    <div class="col-sm-6 col-md-2">
-        
-        <select class="form-select {% if form.order_type.errors %}is-invalid{% endif %}"
-                name="order_type" required>
-            {% for value, label in form.order_type.field.choices %}
-                <option value="{{ value }}" {% if form.order_type.value == value %}selected{% endif %}>
-                    {{ label }}
-                </option>
-            {% endfor %}
-        </select>
-        {% if form.order_type.errors %}
-            <div class="invalid-feedback">{{ form.order_type.errors.0 }}</div>
-        {% endif %}
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label required">订单类型</label>
+                    <select name="order_type" class="form-select" required>
+                        <option value="">请选择订单类型</option>
+                        <option value="platform">平台订单</option>
+                        <option value="influencer">达人订单</option>
+                        <option value="offline">线下订单</option>
+                        <option value="requisition">员工领用</option>
+                        <option value="employee">员工自购</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label required">订单号</label>
+                    <input type="text" name="order_no" class="form-control" required readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">平台单号</label>
+                    <input type="text" name="platform_order_no" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label required">店铺</label>
+                    <select name="shop_id" class="form-select" required>
+                        {% for shop in shops %}
+                        <option value="{{ shop.id }}">{{ shop.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">销售员</label>
+                    <select name="sales_rep" class="form-select">
+                        <option value="">请选择销售员</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-sm-6 col-md-2">
-        
-        <input type="text" class="form-control {% if form.order_no.errors %}is-invalid{% endif %}"
-               name="order_no" value="{{ form.order_no.value|default:'' }}" placeholder="订单号" readonly required>
-        {% if form.order_no.errors %}
-            <div class="invalid-feedback">{{ form.order_no.errors.0 }}</div>
-        {% endif %}
-    </div>
-
-    <input type="hidden" name="platform_order_no" value="{{ form.platform_order_no.value|default:'' }}">
-    <input type="hidden" name="shop" value="1">
-
 </div>

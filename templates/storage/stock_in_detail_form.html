@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">添加入库明细</h2>
+                <div class="text-muted mt-1">入库单号：{{ stock_in.stock_in_no }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <form class="card" method="post">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h3 class="card-title">入库明细信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">SKU</label>
+                                    {{ form.sku }}
+                                    {% if form.sku.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.sku.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">数量</label>
+                                    {{ form.quantity }}
+                                    {% if form.quantity.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.quantity.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">成本</label>
+                                    {{ form.cost }}
+                                    {% if form.cost.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.cost.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">货位</label>
+                                    {{ form.allocation }}
+                                    {% if form.allocation.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.allocation.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">备注</label>
+                                    {{ form.remark }}
+                                    {% if form.remark.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.remark.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <div class="d-flex">
+                            <a href="{% url 'storage:stock-in-detail' stock_in.pk %}" class="btn btn-link">返回</a>
+                            <button type="submit" class="btn btn-primary ms-auto">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // SKU选择器的搜索功能
+        const skuSelect = document.querySelector('select[name="sku"]');
+        if (skuSelect) {
+            $(skuSelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '请选择SKU',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        // 货位选择器的搜索功能
+        const allocationSelect = document.querySelector('select[name="allocation"]');
+        if (allocationSelect) {
+            $(allocationSelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '请选择货位',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}包裹详情{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title">包裹详情</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    {% if package.shipping_label %}
+                    <a href="{{ package.shipping_label.url }}" class="btn btn-primary" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+                            <line x1="9" y1="9" x2="10" y2="9" />
+                            <line x1="9" y1="13" x2="15" y2="13" />
+                            <line x1="9" y1="17" x2="15" y2="17" />
+                        </svg>
+                        查看面单
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-primary" onclick="window.print();">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" />
+                            <path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" />
+                            <rect x="7" y="13" width="10" height="8" rx="2" />
+                        </svg>
+                        打印包裹
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cards">
+        <!-- 基本信息 -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">基本信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">订单号</label>
+                        <div class="form-control-plaintext">
+                            <a href="{% url 'trade:order_detail' package.order.id %}">{{ package.order.order_no }}</a>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">跟踪号</label>
+                        <div class="form-control-plaintext">
+                            {% if package.tracking_no %}
+                            <a href="{{ package.get_tracking_url }}" target="_blank">{{ package.tracking_no }}</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">状态</label>
+                        <div class="form-control-plaintext">
+                            <span class="badge bg-{{ package.status|default:'secondary' }}">
+                                {{ package.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">发货仓库</label>
+                        <div class="form-control-plaintext">{{ package.warehouse.name }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">物流服务</label>
+                        <div class="form-control-plaintext">{{ package.service }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 包裹信息 -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">包裹信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">重量</label>
+                        <div class="form-control-plaintext">{{ package.weight }} kg</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">尺寸</label>
+                        <div class="form-control-plaintext">
+                            {{ package.length }} × {{ package.width }} × {{ package.height }} cm
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">体积重</label>
+                        <div class="form-control-plaintext">{{ package.get_volume_weight }} kg</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">计费重量</label>
+                        <div class="form-control-plaintext">{{ package.get_charged_weight }} kg</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">运费</label>
+                        <div class="form-control-plaintext">{{ package.shipping_fee }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时间信息 -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">时间信息</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">创建时间</label>
+                        <div class="form-control-plaintext">{{ package.created_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">发货时间</label>
+                        <div class="form-control-plaintext">{{ package.shipped_at|date:"Y-m-d H:i:s"|default:"-" }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">送达时间</label>
+                        <div class="form-control-plaintext">{{ package.delivered_at|date:"Y-m-d H:i:s"|default:"-" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 包裹物品 -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">包裹物品</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th class="text-center">数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in package.items %}
+                            <tr>
+                                <td>{{ item.sku__sku_code }}</td>
+                                <td>{{ item.sku__sku_name }}</td>
+                                <td class="text-center">{{ item.qty }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 物流跟踪 -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">物流跟踪</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for info in package.tracking_info %}
+                        <div class="timeline-event">
+                            <div class="timeline-event-icon">
+                                {% if forloop.first %}
+                                <span class="badge bg-blue"></span>
+                                {% else %}
+                                <span class="badge bg-secondary"></span>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-event-body">
+                                <div class="text-muted float-end">{{ info.time }}</div>
+                                <h4>{{ info.location }}</h4>
+                                <p>{{ info.content }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">暂无物流跟踪信息</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态变更记录 -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">状态变更记录</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>变更时间</th>
+                                <th>原状态</th>
+                                <th>新状态</th>
+                                <th>操作人</th>
+                                <th>备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in package.packagestatuslog_set.all %}
+                            <tr>
+                                <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                <td>
+                                    <span class="badge bg-{{ log.from_status|default:'secondary' }}">
+                                        {{ log.get_from_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ log.to_status|default:'secondary' }}">
+                                        {{ log.get_to_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ log.operator.get_full_name|default:log.operator.username }}</td>
+                                <td>{{ log.remark|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">暂无记录</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="col-12 mt-3">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'logistics:package_list' %}" class="btn btn-link">返回列表</a>
+                <div class="btn-list">
+                    {% if not package.shipping_label %}
+                    <form action="{% url 'logistics:upload_shipping_label' package.id %}" method="post" enctype="multipart/form-data" class="d-inline">
+                        {% csrf_token %}
+                        <input type="file" name="shipping_label" id="shipping_label" class="d-none" onchange="this.form.submit()">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('shipping_label').click()">
+                            上传面单
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if package.status == 'pending' %}
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#statusModal" 
+                            data-status="shipped" data-status-name="已发货">
+                        标记发货
+                    </button>
+                    {% elif package.status == 'shipped' %}
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#statusModal"
+                            data-status="delivered" data-status-name="已送达">
+                        标记送达
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 状态变更模态框 -->
+<div class="modal modal-blur fade" id="statusModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="{% url 'logistics:update_package_status' package.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="status" id="statusInput">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认更新状态</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p>确定将包裹状态更新为"<span id="statusName"></span>"吗？</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <input type="text" name="remark" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确认</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+// 状态变更模态框
+var statusModal = document.getElementById('statusModal')
+statusModal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget
+    var status = button.getAttribute('data-status')
+    var statusName = button.getAttribute('data-status-name')
+    
+    var statusInput = statusModal.querySelector('#statusInput')
+    var statusNameSpan = statusModal.querySelector('#statusName')
+    
+    statusInput.value = status
+    statusNameSpan.textContent = statusName
+})
+</script>
+{% endblock %}
+
+{% endblock %} 

@@ -1,72 +1,114 @@
-<div class="row g-2">
-    <div class="col-sm-6 col-md-2">
-        
-        <input type="text" class="form-control {% if form.recipient_name.errors %}is-invalid{% endif %}"
-               name="recipient_name" value="{{ form.recipient_name.value|default:'name' }}" placeholder="收件人姓名 * "   required>
-        {% if form.recipient_name.errors %}
-            <div class="invalid-feedback">{{ form.recipient_name.errors.0 }}</div>
-        {% endif %}
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressParseModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1" />
+                    </svg>
+                    自动识别地址
+                </button>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label required">收件人</label>
+                    <input type="text" name="recipient_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label required">电话</label>
+                    <input type="text" name="recipient_phone" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" name="recipient_email" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label required">国家</label>
+                    <input type="text" name="recipient_country" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label required">省份</label>
+                    <input type="text" name="recipient_state" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label required">城市</label>
+                    <input type="text" name="recipient_city" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label required">详细地址</label>
+                    <input type="text" name="recipient_address" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">邮编</label>
+                    <input type="text" name="recipient_postcode" class="form-control">
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-sm-6 col-md-2">
-        
-        <input type="text" class="form-control {% if form.recipient_phone.errors %}is-invalid{% endif %}"
-               name="recipient_phone" value="{{ form.recipient_phone.value|default:'1234567890' }}" placeholder="收件人手机号 * " required>
-        {% if form.recipient_phone.errors %}
-            <div class="invalid-feedback">{{ form.recipient_phone.errors.0 }}</div>
-        {% endif %}
-    </div>
-    <div class="col-sm-6 col-md-2">
+</div>
 
-        <input type="email" class="form-control {% if form.recipient_email.errors %}is-invalid{% endif %}"
-               name="recipient_email" value="{{ form.recipient_email.value|default:'email@example.com' }}" placeholder="收件人邮箱 (选填)">
-        {% if form.recipient_email.errors %}
-            <div class="invalid-feedback">{{ form.recipient_email.errors.0 }}</div>
-        {% endif %}
+<!-- 地址识别模态框 -->
+<div class="modal modal-blur fade" id="addressParseModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">自动识别地址</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">请粘贴包含收件人信息的文本</label>
+                    <textarea class="form-control" id="addressText" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn me-auto" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="parseAddressBtn">识别</button>
+            </div>
+        </div>
     </div>
 </div>
 
-
-
-<div class="row g-2 mt-2">
-    <div class="col-sm-6 col-md-2">
-        
-        <input type="text" class="form-control {% if form.recipient_country.errors %}is-invalid{% endif %}"
-               name="recipient_country" value="{{ form.recipient_country.value|default:'中国' }}" placeholder="国家" required>
-        {% if form.recipient_country.errors %}
-            <div class="invalid-feedback">{{ form.recipient_country.errors.0 }}</div>
-        {% endif %}
-    </div>
-    <div class="col-sm-6 col-md-2">
-
-        <input type="text" class="form-control {% if form.recipient_state.errors %}is-invalid{% endif %}"
-               name="recipient_state" value="{{ form.recipient_state.value|default:'广东' }}" placeholder="州/省" required>
-        {% if form.recipient_state.errors %}
-            <div class="invalid-feedback">{{ form.recipient_state.errors.0 }}</div>
-        {% endif %}
-    </div>
-    <div class="col-sm-6 col-md-2">
-
-        <input type="text" class="form-control {% if form.recipient_city.errors %}is-invalid{% endif %}"
-               name="recipient_city" value="{{ form.recipient_city.value|default:'广州' }}" placeholder="城市" required>
-        {% if form.recipient_city.errors %}
-            <div class="invalid-feedback">{{ form.recipient_city.errors.0 }}</div>
-        {% endif %}
-    </div>
-    <div class="col-sm-6 col-md-2">
-
-        <input type="text" class="form-control {% if form.recipient_postcode.errors %}is-invalid{% endif %}"
-               name="recipient_postcode" value="{{ form.recipient_postcode.value|default:'510000' }}" placeholder="邮编">
-        {% if form.recipient_postcode.errors %}
-            <div class="invalid-feedback">{{ form.recipient_postcode.errors.0 }}</div>
-        {% endif %}
-    </div>
-    <div class="col-sm-6 col-md-8">
-
-        <input type="text" class="form-control {% if form.recipient_address.errors %}is-invalid{% endif %}"
-               name="recipient_address" value="{{ form.recipient_address.value|default:'四海城4栋' }}" placeholder="详细地址" required>
-        {% if form.recipient_address.errors %}
-            <div class="invalid-feedback">{{ form.recipient_address.errors.0 }}</div>
-        {% endif %}
-    </div>
-</div>
+<script>
+document.getElementById('parseAddressBtn').addEventListener('click', function() {
+    const text = document.getElementById('addressText').value;
+    if (!text) {
+        alert('请输入地址文本');
+        return;
+    }
+    
+    fetch('{% url "trade:parse_address" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ text: text })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 填充表单
+            const result = data.data;
+            if (result.name) document.querySelector('[name=recipient_name]').value = result.name;
+            if (result.phone) document.querySelector('[name=recipient_phone]').value = result.phone;
+            if (result.postcode) document.querySelector('[name=recipient_postcode]').value = result.postcode;
+            if (result.province) document.querySelector('[name=recipient_state]').value = result.province;
+            if (result.city) document.querySelector('[name=recipient_city]').value = result.city;
+            if (result.address) document.querySelector('[name=recipient_address]').value = result.address;
+            
+            // 关闭模态框
+            bootstrap.Modal.getInstance(document.getElementById('addressParseModal')).hide();
+        } else {
+            alert('识别失败：' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('识别失败，请重试');
+    });
+});</script>
 

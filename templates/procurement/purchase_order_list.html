@@ -1,64 +1,122 @@
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}采购单列表{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    {% csrf_token %}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">采购单列表</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-success" onclick="syncPurchaseOrders()">
-                    <i class="fas fa-sync"></i> 同步采购单
-                </button>
-                <a href="{% url 'procurement:purchase_order_create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> 新增采购单
-                </a>
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">采购单管理</h3>
+                    <div class="card-actions">
+                        <button type="button" class="btn btn-success me-2" onclick="syncPurchaseOrders()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                            同步采购单
+                        </button>
+                        <a href="{% url 'procurement:purchase-order-create' %}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                            新增采购单
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="text-muted">
+                            搜索:
+                            <div class="ms-2 d-inline-block">
+                                <form action="." method="get" class="form-inline">
+                                    <input type="text" class="form-control form-control-sm" name="q" value="{{ request.GET.q }}" placeholder="采购单号或供应商">
+                                    {% if request.GET.status %}
+                                    <input type="hidden" name="status" value="{{ request.GET.status }}">
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 状态页签 -->
+                    <div class="mb-3">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link {% if not current_status %}active{% endif %}" href="{% url 'procurement:purchase-order-list' %}">
+                                    全部
+                                </a>
+                            </li>
+                            {% for status_value, status_label in status_choices %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if current_status == status_value|stringformat:'i' %}active{% endif %}" 
+                                   href="?status={{ status_value }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                    {{ status_label }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- 采购单列表 -->
+                    <div class="table-responsive">
+                        <table class="table card-table table-vcenter text-nowrap datatable">
+                            <thead>
+                                <tr>
+                                    <th>采购单号</th>
+                                    <th>供应商</th>
+                                    <th>仓库</th>
+                                    <th>采购日期</th>
+                                    <th>预计到货日期</th>
+                                    <th>状态</th>
+                                    <th>总金额</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in purchase_orders %}
+                                <tr>
+                                    <td>{{ order.purchase_order_number }}</td>
+                                    <td>{{ order.supplier.name }}</td>
+                                    <td>{{ order.warehouse.name|default:'-' }}</td>
+                                    <td>{{ order.purchase_date|date:"Y-m-d" }}</td>
+                                    <td>{{ order.expected_delivery_date|date:"Y-m-d" }}</td>
+                                    <td>{{ order.get_status_display }}</td>
+                                    <td>¥{{ order.total_amount }}</td>
+                                    <td>
+                                        <a href="{% url 'procurement:purchase-order-detail' order.pk %}" class="btn btn-sm btn-info">详情</a>
+                                        <a href="{% url 'procurement:purchase-order-update' order.pk %}" class="btn btn-sm btn-primary">编辑</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">暂无采购单数据</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    {% if is_paginated %}
+                    <div class="card-footer d-flex align-items-center">
+                        <p class="m-0 text-muted">第 {{ page_obj.number }}/{{ paginator.num_pages }} 页</p>
+                        <ul class="pagination m-0 ms-auto">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>
+                                    上一页
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                    下一页
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>采购单号</th>
-                        <th>供应商</th>
-                        <th>采购日期</th>
-                        <th>预计到货日期</th>
-                        <th>总金额</th>
-                        <th>状态</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in purchase_orders %}
-                    <tr>
-                        <td>{{ order.purchase_order_number }}</td>
-                        <td>{{ order.supplier.name }}</td>
-                        <td>{{ order.purchase_date }}</td>
-                        <td>{{ order.expected_delivery_date }}</td>
-                        <td>{{ order.total_amount }}</td>
-                        <td>{{ order.get_status_display }}</td>
-                        <td>
-                            <a href="{% url 'procurement:purchase_order_detail' order.id %}" class="btn btn-info btn-sm">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url 'procurement:purchase_order_edit' order.id %}" class="btn btn-warning btn-sm">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deletePurchaseOrder({{ order.id }})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center">暂无采购单</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
@@ -66,86 +124,49 @@
 
 {% block extra_js %}
 <script>
-function deletePurchaseOrder(orderId) {
-    if (confirm('确定要删除这个采购单吗？')) {
-        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-        fetch(`/procurement/purchase-order/${orderId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-            },
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('删除失败，请重试');
-            }
-        });
-    }
-}
-
 function syncPurchaseOrders() {
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
     const syncButton = document.querySelector('button[onclick="syncPurchaseOrders()"]');
     const originalContent = syncButton.innerHTML;
     
     // 禁用按钮并显示加载状态
     syncButton.disabled = true;
-    syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 同步中...';
+    syncButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-loader" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <line x1="12" y1="6" x2="12" y2="3"></line>
+            <line x1="16.25" y1="7.75" x2="18.4" y2="5.6"></line>
+            <line x1="18" y1="12" x2="21" y2="12"></line>
+            <line x1="16.25" y1="16.25" x2="18.4" y2="18.4"></line>
+            <line x1="12" y1="18" x2="12" y2="21"></line>
+            <line x1="7.75" y1="16.25" x2="5.6" y2="18.4"></line>
+            <line x1="6" y1="12" x2="3" y2="12"></line>
+            <line x1="7.75" y1="7.75" x2="5.6" y2="5.6"></line>
+        </svg>
+        同步中...
+    `;
     
-    fetch('{% url "procurement:sync_purchase_orders" %}', {
+    // 发送同步请求
+    fetch('{% url "procurement:sync-purchase-orders" %}', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json'
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
         }
     })
-    .then(response => 
-        response.json().then(data => ({
-            ok: response.ok,
-            status: response.status,
-            data: data
-        }))
-    )
-    .then(({ ok, status, data }) => {
-        if (ok) {
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             // 显示成功消息
-            Swal.fire({
-                icon: 'success',
-                title: '同步成功',
-                text: data.message,
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    window.location.reload();
-                }
-            });
+            alert(data.message);
+            // 刷新页面
+            window.location.reload();
         } else {
             // 显示错误消息
-            Swal.fire({
-                icon: 'error',
-                title: '同步失败',
-                text: data.message || '请稍后重试',
-                confirmButtonText: '确定'
-            }).then(() => {
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                }
-            });
+            alert('同步失败：' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        // 显示错误消息
-        Swal.fire({
-            icon: 'error',
-            title: '同步失败',
-            text: '请求发生错误，请稍后重试',
-            confirmButtonText: '确定'
-        });
+        alert('同步请求失败，请稍后重试');
     })
     .finally(() => {
         // 恢复按钮状态

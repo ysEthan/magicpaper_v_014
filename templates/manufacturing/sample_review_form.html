@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">样品订单 {{ order.order_no }}</div>
+                <h2 class="page-title">新增评审记录</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">订单信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">SKU</label>
+                                    <div class="form-control-plaintext">{{ order.sku.sku_code }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">生产工厂</label>
+                                    <div class="form-control-plaintext">{{ order.factory.name|default:'-' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">生产数量</label>
+                                    <div class="form-control-plaintext">{{ order.quantity }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">跟单员</label>
+                                    <div class="form-control-plaintext">{{ order.follower.username|default:'-' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <form class="card" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h3 class="card-title">评审信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">评审日期</label>
+                                    {{ form.review_date }}
+                                    {% if form.review_date.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.review_date.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">评审结论</label>
+                                    {{ form.conclusion }}
+                                    {% if form.conclusion.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.conclusion.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label required">评审内容</label>
+                                    {{ form.content }}
+                                    {% if form.content.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.content.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">附件</label>
+                                    <input type="file" class="form-control" id="file-upload" multiple>
+                                    <div id="file-list" class="mt-2"></div>
+                                    {{ form.attachments }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <div class="d-flex">
+                            <a href="{% url 'manufacturing:sample_review_list' order.pk %}" class="btn btn-link">取消</a>
+                            <button type="submit" class="btn btn-primary ms-auto">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileUpload = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const attachmentsInput = document.querySelector('input[name="attachments"]');
+        let files = [];
+
+        fileUpload.addEventListener('change', function(e) {
+            const newFiles = Array.from(e.target.files);
+            
+            newFiles.forEach(file => {
+                // 创建文件预览
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        url: e.target.result
+                    };
+                    files.push(fileData);
+                    updateFileList();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'mb-2 d-flex align-items-center';
+                fileItem.innerHTML = `
+                    <span class="me-2">${file.name}</span>
+                    <button type="button" class="btn btn-danger btn-sm" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        删除
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            // 更新隐藏输入框的值
+            attachmentsInput.value = JSON.stringify(files);
+        }
+
+        // 删除文件
+        fileList.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-danger')) {
+                const index = e.target.closest('.btn-danger').dataset.index;
+                files.splice(index, 1);
+                updateFileList();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

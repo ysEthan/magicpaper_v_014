@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <form method="post" class="card">
+                {% csrf_token %}
+                <div class="card-header">
+                    <h3 class="card-title">{{ object.id|yesno:"编辑,新增" }}采购单</h3>
+                </div>
+                <div class="card-body">
+                    {% if not object.id %}
+                    <div class="mb-3">
+                        <label class="form-label required">采购单号</label>
+                        <input type="text" class="form-control" name="purchase_order_number" value="{{ object.purchase_order_number|default:'' }}" required>
+                        {% if form.purchase_order_number.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.purchase_order_number.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label required">供应商</label>
+                        <select class="form-select" name="supplier" required>
+                            <option value="">请选择供应商</option>
+                            {% for supplier in form.fields.supplier.queryset %}
+                            <option value="{{ supplier.id }}" {% if supplier.id == object.supplier_id %}selected{% endif %}>
+                                {{ supplier.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.supplier.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.supplier.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">仓库</label>
+                        <select class="form-select" name="warehouse">
+                            <option value="">请选择仓库</option>
+                            {% for warehouse in form.fields.warehouse.queryset %}
+                            <option value="{{ warehouse.id }}" {% if warehouse.id == object.warehouse_id %}selected{% endif %}>
+                                {{ warehouse.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.warehouse.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.warehouse.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">采购日期</label>
+                        <input type="date" class="form-control" name="purchase_date" value="{{ object.purchase_date|date:'Y-m-d'|default:'' }}" required>
+                        {% if form.purchase_date.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.purchase_date.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">预计到货日期</label>
+                        <input type="date" class="form-control" name="expected_delivery_date" value="{{ object.expected_delivery_date|date:'Y-m-d'|default:'' }}" required>
+                        {% if form.expected_delivery_date.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.expected_delivery_date.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">状态</label>
+                        <select class="form-select" name="status" required>
+                            {% for value, label in form.fields.status.choices %}
+                            <option value="{{ value }}" {% if value == object.status %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.status.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.status.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'procurement:purchase-order-list' %}" class="btn btn-link">取消</a>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

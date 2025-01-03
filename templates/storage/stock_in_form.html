@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <form method="post" class="card">
+                {% csrf_token %}
+                <div class="card-header">
+                    <h3 class="card-title">{{ object.id|yesno:"编辑,新增" }}入库单</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label required">仓库</label>
+                        <select class="form-select" name="warehouse" required>
+                            <option value="">请选择仓库</option>
+                            {% for warehouse in form.fields.warehouse.queryset %}
+                            <option value="{{ warehouse.id }}" {% if warehouse.id == object.warehouse_id %}selected{% endif %}>
+                                {{ warehouse.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.warehouse.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.warehouse.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">来源类型</label>
+                        <select class="form-select" name="source_type" required>
+                            {% for value, label in form.fields.source_type.choices %}
+                            <option value="{{ value }}" {% if value == object.source_type %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.source_type.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.source_type.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">来源单号</label>
+                        <input type="text" class="form-control" name="source_no" value="{{ object.source_no|default:'' }}" required>
+                        {% if form.source_no.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.source_no.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">操作人</label>
+                        <input type="text" class="form-control" name="operator" value="{{ object.operator|default:request.user }}" required>
+                        {% if form.operator.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.operator.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <textarea class="form-control" name="remark" rows="3">{{ object.remark|default:'' }}</textarea>
+                        {% if form.remark.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.remark.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'storage:stock-in-list' %}" class="btn btn-link">取消</a>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

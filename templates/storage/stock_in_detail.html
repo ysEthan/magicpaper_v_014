@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">入库单详情</h3>
+                    <div class="card-actions">
+                        <a href="{% url 'storage:stock-in-list' %}" class="btn btn-link">
+                            返回列表
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="datagrid">
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">入库单号</div>
+                            <div class="datagrid-content">{{ stock_in.stock_in_no }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">仓库</div>
+                            <div class="datagrid-content">{{ stock_in.warehouse.name }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">来源类型</div>
+                            <div class="datagrid-content">{{ stock_in.get_source_type_display }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">来源单号</div>
+                            <div class="datagrid-content">{{ stock_in.source_no }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">状态</div>
+                            <div class="datagrid-content">{{ stock_in.get_status_display }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">操作人</div>
+                            <div class="datagrid-content">{{ stock_in.operator }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">创建时间</div>
+                            <div class="datagrid-content">{{ stock_in.created_at|date:"Y-m-d H:i" }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">更新时间</div>
+                            <div class="datagrid-content">{{ stock_in.updated_at|date:"Y-m-d H:i" }}</div>
+                        </div>
+                        {% if stock_in.remark %}
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">备注</div>
+                            <div class="datagrid-content">{{ stock_in.remark }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 mt-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">入库明细</h3>
+                    {% if stock_in.status == 'draft' %}
+                    <div class="card-actions">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-detail-modal">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                            添加明细
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable">
+                        <thead>
+                            <tr>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>数量</th>
+                                <th>成本</th>
+                                <th>货位</th>
+                                <th>备注</th>
+                                {% if stock_in.status == 'draft' %}
+                                <th>操作</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detail in details %}
+                            <tr>
+                                <td>{{ detail.sku.sku_code }}</td>
+                                <td>{{ detail.sku.sku_name }}</td>
+                                <td>{{ detail.quantity }}</td>
+                                <td>¥{{ detail.cost }}</td>
+                                <td>{{ detail.allocation.location_code }}</td>
+                                <td>{{ detail.remark|default:'-' }}</td>
+                                {% if stock_in.status == 'draft' %}
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteDetail({{ detail.id }})">删除</button>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if stock_in.status == 'draft' %}7{% else %}6{% endif %}" class="text-center">暂无入库明细</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stock_in.status == 'draft' %}
+<!-- 添加明细模态框 -->
+<div class="modal modal-blur fade" id="add-detail-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加入库明细</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="add-detail-form" method="post" action="{% url 'storage:stock-in-add-detail' stock_in.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label required">商品</label>
+                        <select class="form-select" name="sku" required>
+                            <option value="">请选择商品</option>
+                            {% for sku in skus %}
+                            <option value="{{ sku.id }}">{{ sku.sku_code }} - {{ sku.sku_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">数量</label>
+                        <input type="number" class="form-control" name="quantity" required min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">成本</label>
+                        <input type="number" class="form-control" name="cost" required min="0" step="0.01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">货位</label>
+                        <select class="form-select" name="allocation" required>
+                            <option value="">请选择货位</option>
+                            {% for allocation in allocations %}
+                            <option value="{{ allocation.id }}">{{ allocation.area_name }} - {{ allocation.location_code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <input type="text" class="form-control" name="remark">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 删除明细确认模态框 -->
+<div class="modal modal-blur fade" id="delete-detail-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="modal-title">确认删除</div>
+                <div>您确定要删除这条入库明细吗？此操作不可恢复。</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="delete-detail-form" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if stock_in.status == 'draft' %}
+<script>
+function deleteDetail(detailId) {
+    const deleteForm = document.getElementById('delete-detail-form');
+    deleteForm.action = `{% url 'storage:stock-in-delete-detail' stock_in.pk %}${detailId}/`;
+    const modal = new bootstrap.Modal(document.getElementById('delete-detail-modal'));
+    modal.show();
+}
+</script>
+{% endif %}
+{% endblock %} 

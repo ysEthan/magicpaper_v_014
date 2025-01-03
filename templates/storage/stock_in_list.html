@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">入库单管理</h3>
+                    <div class="card-actions">
+                        <a href="{% url 'storage:stock-in-create' %}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                            新增入库单
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body border-bottom py-3">
+                    <div class="d-flex">
+                        <div class="text-muted">
+                            仓库:
+                            <div class="ms-2 d-inline-block">
+                                <select class="form-select form-select-sm" onchange="this.form.submit()" name="warehouse" form="filter-form">
+                                    <option value="">全部仓库</option>
+                                    {% for warehouse in warehouses %}
+                                    <option value="{{ warehouse.id }}" {% if warehouse.id|stringformat:"i" == current_warehouse %}selected{% endif %}>
+                                        {{ warehouse.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            搜索:
+                            <div class="ms-2 d-inline-block">
+                                <form id="filter-form" action="." method="get" class="form-inline">
+                                    <input type="text" class="form-control form-control-sm" name="q" value="{{ request.GET.q }}" placeholder="入库单号或来源单号">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable">
+                        <thead>
+                            <tr>
+                                <th>入库单号</th>
+                                <th>仓库</th>
+                                <th>来源类型</th>
+                                <th>来源单号</th>
+                                <th>状态</th>
+                                <th>操作人</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock_in in stock_ins %}
+                            <tr>
+                                <td>{{ stock_in.stock_in_no }}</td>
+                                <td>{{ stock_in.warehouse.name }}</td>
+                                <td>{{ stock_in.get_source_type_display }}</td>
+                                <td>{{ stock_in.source_no }}</td>
+                                <td>{{ stock_in.get_status_display }}</td>
+                                <td>{{ stock_in.operator }}</td>
+                                <td>{{ stock_in.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'storage:stock-in-detail' stock_in.pk %}" class="btn btn-sm btn-primary">查看</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">暂无入库单数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if is_paginated %}
+                <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">第 {{ page_obj.number }}/{{ paginator.num_pages }} 页</p>
+                    <ul class="pagination m-0 ms-auto">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_warehouse %}&warehouse={{ current_warehouse }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>
+                                上一页
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_warehouse %}&warehouse={{ current_warehouse }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                下一页
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,194 @@
+<div class="card">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="skuSearchInput" placeholder="输入SKU搜索...">
+                    <button class="btn btn-primary" type="button" id="searchSkuBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <circle cx="10" cy="10" r="7" />
+                            <line x1="21" y1="21" x2="15" y2="15" />
+                        </svg>
+                        搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>商品名称</th>
+                        <th>单价</th>
+                        <th>数量</th>
+                        <th>小计</th>
+                        <th class="w-1"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 动态添加的商品行 -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end">总计：</td>
+                        <td class="text-end" id="totalAmount">0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SKU搜索结果模态框 -->
+<div class="modal modal-blur fade" id="skuSearchModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">SKU搜索结果</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th>单价</th>
+                                <th>库存</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchResultsBody">
+                            <!-- 搜索结果将动态添加到这里 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 商品数据存储
+let cartItems = [];
+
+// 更新总金额
+function updateTotal() {
+    const total = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+}
+
+// 添加商品到购物车
+function addToCart(sku, name, price, qty = 1) {
+    const existingItem = cartItems.find(item => item.sku === sku);
+    if (existingItem) {
+        existingItem.qty += qty;
+    } else {
+        cartItems.push({ sku, name, price, qty });
+    }
+    renderCart();
+    updateTotal();
+}
+
+// 从购物车移除商品
+function removeFromCart(sku) {
+    cartItems = cartItems.filter(item => item.sku !== sku);
+    renderCart();
+    updateTotal();
+}
+
+// 更新商品数量
+function updateQuantity(sku, qty) {
+    const item = cartItems.find(item => item.sku === sku);
+    if (item) {
+        item.qty = parseInt(qty) || 0;
+        renderCart();
+        updateTotal();
+    }
+}
+
+// 渲染购物车
+function renderCart() {
+    const tbody = document.querySelector('#cartTable tbody');
+    tbody.innerHTML = cartItems.map(item => `
+        <tr>
+            <td>${item.sku}</td>
+            <td>${item.name}</td>
+            <td>${item.price.toFixed(2)}</td>
+            <td>
+                <input type="number" class="form-control form-control-sm w-8" value="${item.qty}"
+                       onchange="updateQuantity('${item.sku}', this.value)" min="1">
+            </td>
+            <td class="text-end">${(item.price * item.qty).toFixed(2)}</td>
+            <td>
+                <a href="#" class="btn btn-danger btn-icon btn-sm" onclick="removeFromCart('${item.sku}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// 搜索SKU
+document.getElementById('searchSkuBtn').addEventListener('click', function() {
+    const keyword = document.getElementById('skuSearchInput').value;
+    if (!keyword) {
+        alert('请输入搜索关键词');
+        return;
+    }
+    
+    fetch('{% url "trade:search_sku" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ keyword: keyword })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const tbody = document.getElementById('searchResultsBody');
+            tbody.innerHTML = data.data.map(item => `
+                <tr>
+                    <td>${item.sku}</td>
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${item.stock}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="addToCart('${item.sku}', '${item.name}', ${item.price})">
+                            添加
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // 显示模态框
+            new bootstrap.Modal(document.getElementById('skuSearchModal')).show();
+        } else {
+            alert('搜索失败：' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('搜索失败，请重试');
+    });
+});
+
+// 表单提交前收集商品数据
+document.querySelector('form').addEventListener('submit', function(e) {
+    const cartItemsInput = document.createElement('input');
+    cartItemsInput.type = 'hidden';
+    cartItemsInput.name = 'cart_items';
+    cartItemsInput.value = JSON.stringify(cartItems);
+    this.appendChild(cartItemsInput);
+});</script> 

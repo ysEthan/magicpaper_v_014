@@ -1,27 +1,98 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}个人资料{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title">个人资料</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row row-cards">
+        <div class="col-md-6 col-lg-4">
             <div class="card">
-                <div class="card-header">
-                    <h3>个人资料</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="{% static 'images/default-avatar.png' %}" class="img-fluid rounded-circle">
-                        </div>
-                        <div class="col-md-8">
-                            <h4>{{ user.username }}</h4>
-                            <p>邮箱：{{ user.email|default:"未设置" }}</p>
-                            <p>加入时间：{{ user.date_joined|date:"Y-m-d" }}</p>
-                        </div>
+                <div class="card-body p-4 text-center">
+                    {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" class="avatar avatar-xl mb-3 avatar-rounded" alt="头像">
+                    {% else %}
+                    <img src="{% static 'img/default-avatar.png' %}" class="avatar avatar-xl mb-3 avatar-rounded" alt="默认头像">
+                    {% endif %}
+                    <h3 class="m-0 mb-1">{{ user.get_full_name|default:user.username }}</h3>
+                    <div class="text-muted">{{ user.profile.position }}</div>
+                    <div class="mt-3">
+                        <span class="badge bg-blue-lt">{{ user.profile.department }}</span>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-6 col-lg-8">
+            <form class="card" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="card-header">
+                    <h3 class="card-title">编辑资料</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">姓</label>
+                                <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">名</label>
+                                <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">邮箱</label>
+                                <input type="email" class="form-control" name="email" value="{{ user.email }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">手机号</label>
+                                <input type="text" class="form-control" name="phone" value="{{ user.profile.phone }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">部门</label>
+                                <input type="text" class="form-control" name="department" value="{{ user.profile.department }}">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">职位</label>
+                                <input type="text" class="form-control" name="position" value="{{ user.profile.position }}">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">头像</label>
+                                <input type="file" class="form-control" name="avatar">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

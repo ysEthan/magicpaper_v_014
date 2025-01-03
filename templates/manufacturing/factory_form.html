@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">{% if form.instance.pk %}编辑工厂{% else %}新增工厂{% endif %}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <form class="card" method="post">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h3 class="card-title">工厂信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 col-xl-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">工厂名称</label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">工厂代码</label>
+                                    {{ form.code }}
+                                    {% if form.code.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.code.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">联系人</label>
+                                    {{ form.contact }}
+                                    {% if form.contact.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.contact.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">联系电话</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.phone.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label required">地址</label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.address.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-check form-switch">
+                                        {{ form.is_active }}
+                                        <span class="form-check-label">启用状态</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <div class="d-flex">
+                            <a href="{% url 'manufacturing:factory_list' %}" class="btn btn-link">取消</a>
+                            <button type="submit" class="btn btn-primary ms-auto">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

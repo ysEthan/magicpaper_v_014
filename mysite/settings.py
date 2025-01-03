@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'trade',
     'logistics',
     'procurement',
+    'manufacturing',
     # 'storage.apps.StorageConfig',
 ]
 
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'muggle.middleware.LoginRequiredMiddleware',
 ]
 
 # Message framework settings

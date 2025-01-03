@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="row row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">采购单详情</h3>
+                    <div class="card-actions">
+                        <a href="{% url 'procurement:purchase-order-update' purchase_order.pk %}" class="btn btn-primary">
+                            编辑采购单
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="datagrid">
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">采购单号</div>
+                            <div class="datagrid-content">{{ purchase_order.purchase_order_number }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">供应商</div>
+                            <div class="datagrid-content">{{ purchase_order.supplier.name }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">仓库</div>
+                            <div class="datagrid-content">{{ purchase_order.warehouse.name|default:'-' }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">采购日期</div>
+                            <div class="datagrid-content">{{ purchase_order.purchase_date|date:"Y-m-d" }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">预计到货日期</div>
+                            <div class="datagrid-content">{{ purchase_order.expected_delivery_date|date:"Y-m-d" }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">状态</div>
+                            <div class="datagrid-content">{{ purchase_order.get_status_display }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">总金额</div>
+                            <div class="datagrid-content">¥{{ purchase_order.total_amount }}</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h4>采购明细</h4>
+                        <div class="table-responsive">
+                            <table class="table card-table table-vcenter">
+                                <thead>
+                                    <tr>
+                                        <th>商品编码</th>
+                                        <th>商品名称</th>
+                                        <th>数量</th>
+                                        <th>单价</th>
+                                        <th>金额</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detail in details %}
+                                    <tr>
+                                        <td>{{ detail.product.sku_code }}</td>
+                                        <td>{{ detail.product.sku_name }}</td>
+                                        <td>{{ detail.quantity }}</td>
+                                        <td>¥{{ detail.unit_price }}</td>
+                                        <td>¥{{ detail.amount }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">暂无采购明细</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'procurement:purchase-order-list' %}" class="btn btn-link">返回列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

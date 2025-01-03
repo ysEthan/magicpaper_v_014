@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">生产订单管理</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{% url 'manufacturing:production_order_create' %}" class="btn btn-primary d-none d-sm-inline-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        新增订单
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">生产订单列表</h3>
+                <div class="ms-auto">
+                    <form class="d-flex gap-2">
+                        <select class="form-select" name="type">
+                            <option value="">全部类型</option>
+                            <option value="sample" {% if order_type == 'sample' %}selected{% endif %}>样品订单</option>
+                            <option value="mass" {% if order_type == 'mass' %}selected{% endif %}>量产订单</option>
+                        </select>
+                        <select class="form-select" name="status">
+                            <option value="">全部状态</option>
+                            <option value="draft" {% if status == 'draft' %}selected{% endif %}>草稿</option>
+                            <option value="pending" {% if status == 'pending' %}selected{% endif %}>待处理</option>
+                            <option value="in_production" {% if status == 'in_production' %}selected{% endif %}>生产中</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
+                            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>已取消</option>
+                        </select>
+                        <input type="search" class="form-control" name="search" placeholder="搜索订单..." value="{{ search_query }}">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <circle cx="10" cy="10" r="7" />
+                                <line x1="21" y1="21" x2="15" y2="15" />
+                            </svg>
+                            搜索
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table card-table table-vcenter text-nowrap datatable">
+                    <thead>
+                        <tr>
+                            <th>订单编号</th>
+                            <th>订单类型</th>
+                            <th>SKU</th>
+                            <th>生产工厂</th>
+                            <th>生产数量</th>
+                            <th>预计完成日期</th>
+                            <th>预计交货日期</th>
+                            <th>跟单员</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.order_no }}</td>
+                            <td>{{ order.get_order_type_display }}</td>
+                            <td>{{ order.sku.sku_code }}</td>
+                            <td>{{ order.factory.name|default:'-' }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>{{ order.expected_date|date:"Y-m-d"|default:'-' }}</td>
+                            <td>{{ order.delivery_date|date:"Y-m-d"|default:'-' }}</td>
+                            <td>{{ order.follower.username|default:'-' }}</td>
+                            <td>
+                                {% if order.status == 'draft' %}
+                                <span class="badge bg-secondary">草稿</span>
+                                {% elif order.status == 'pending' %}
+                                <span class="badge bg-primary">待处理</span>
+                                {% elif order.status == 'in_production' %}
+                                <span class="badge bg-info">生产中</span>
+                                {% elif order.status == 'completed' %}
+                                <span class="badge bg-success">已完成</span>
+                                {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger">已取消</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-list flex-nowrap">
+                                    <a href="{% url 'manufacturing:production_order_edit' order.pk %}" class="btn btn-primary btn-sm">编辑</a>
+                                    {% if order.order_type == 'sample' %}
+                                    <a href="{% url 'manufacturing:sample_review_list' order.pk %}" class="btn btn-info btn-sm">评审记录</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">暂无数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if orders.has_other_pages %}
+            <div class="card-footer d-flex align-items-center">
+                <p class="m-0 text-muted">第 {{ orders.number }} 页，共 {{ orders.paginator.num_pages }} 页</p>
+                <ul class="pagination m-0 ms-auto">
+                    {% if orders.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ orders.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if order_type %}&type={{ order_type }}{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <polyline points="15 6 9 12 15 18" />
+                            </svg>
+                            上一页
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if orders.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ orders.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if order_type %}&type={{ order_type }}{% endif %}">
+                            下一页
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <polyline points="9 6 15 12 9 18" />
+                            </svg>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

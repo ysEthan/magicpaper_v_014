@@ -1,199 +1,109 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}订单详情{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">订单详情</h3>
-                    <div class="card-tools">
-                        <a href="{% url 'trade:order_list' %}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left"></i> 返回列表
-                        </a>
-                        <a href="{% url 'trade:order_edit' order.id %}" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i> 编辑订单
-                        </a>
-                    </div>
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title">订单详情</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <button type="button" class="btn btn-primary" onclick="window.print();">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" />
+                        <path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" />
+                        <rect x="7" y="13" width="10" height="8" rx="2" />
+                    </svg>
+                    打印订单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-lg">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <p class="h3">订单信息</p>
+                    <address>
+                        订单号：{{ order.order_no }}<br>
+                        店铺：{{ order.shop.name }}<br>
+                        状态：<span class="badge bg-{{ order.get_status_color }}">{{ order.get_status_display }}</span><br>
+                        创建时间：{{ order.created_at|date:"Y-m-d H:i:s" }}
+                    </address>
                 </div>
-                <div class="card-body">
-                    <!-- 订单基本信息 -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h5>订单信息</h5>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th style="width: 150px;">订单号：</th>
-                                    <td>{{ order.order_no }}</td>
-                                </tr>
-                                <tr>
-                                    <th>平台订单号：</th>
-                                    <td>{{ order.platform_order_no }}</td>
-                                </tr>
-                                <tr>
-                                    <th>店铺：</th>
-                                    <td>{{ order.shop.name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>订单状态：</th>
-                                    <td>
-                                        <span class="badge badge-{{ order.status }}">
-                                            {{ order.get_status_display }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>创建时间：</th>
-                                    <td>{{ order.created_at|date:"Y-m-d H:i:s" }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>收件人信息</h5>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th style="width: 150px;">收件人：</th>
-                                    <td>{{ order.recipient_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>联系电话：</th>
-                                    <td>{{ order.recipient_phone }}</td>
-                                </tr>
-                                <tr>
-                                    <th>邮箱：</th>
-                                    <td>{{ order.recipient_email|default:"-" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>收件地址：</th>
-                                    <td>
-                                        {{ order.recipient_country }} 
-                                        {{ order.recipient_state }} 
-                                        {{ order.recipient_city }} 
-                                        {{ order.recipient_address }}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                <div class="col-6 text-end">
+                    <p class="h3">收件人信息</p>
+                    <address>
+                        {{ order.recipient_name }}<br>
+                        {{ order.recipient_phone }}<br>
+                        {% if order.recipient_email %}{{ order.recipient_email }}<br>{% endif %}
+                        {{ order.recipient_state }} {{ order.recipient_city }}<br>
+                        {{ order.recipient_address }}<br>
+                        {% if order.recipient_postcode %}{{ order.recipient_postcode }}{% endif %}
+                    </address>
+                </div>
+                {% if order.remark %}
+                <div class="col-12">
+                    <p class="h3">备注</p>
+                    <p>{{ order.remark }}</p>
+                </div>
+                {% endif %}
+            </div>
 
-                    <!-- 商品信息 -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5>商品信息</h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>SKU</th>
-                                            <th>商品名称</th>
-                                            <th>数量</th>
-                                            <th>单价</th>
-                                            <th>实际单价</th>
-                                            <th>小计</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for item in cart_items %}
-                                        <tr>
-                                            <td>{{ item.sku.sku_code }}</td>
-                                            <td>{{ item.sku.name }}</td>
-                                            <td>{{ item.qty }}</td>
-                                            <td>{{ item.price }}</td>
-                                            <td>{{ item.actual_price }}</td>
-                                            <td>{{ item.subtotal }}</td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="6" class="text-center">暂无商品信息</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="5" class="text-right"><strong>商品总额：</strong></td>
-                                            <td>{{ order.paid_amount }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5" class="text-right"><strong>运费：</strong></td>
-                                            <td>{{ order.freight }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5" class="text-right"><strong>订单总额：</strong></td>
-                                            <td><strong>{{ order.paid_amount|add:order.freight }}</strong></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+            <table class="table table-transparent table-responsive">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 1%">序号</th>
+                        <th>SKU</th>
+                        <th>商品名称</th>
+                        <th class="text-center" style="width: 1%">数量</th>
+                        <th class="text-end" style="width: 1%">单价</th>
+                        <th class="text-end" style="width: 1%">小计</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.cart_set.all %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>{{ item.sku }}</td>
+                        <td>{{ item.name }}</td>
+                        <td class="text-center">{{ item.qty }}</td>
+                        <td class="text-end">{{ item.price }}</td>
+                        <td class="text-end">{{ item.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td colspan="5" class="strong text-end">总计</td>
+                        <td class="text-end">{{ order.total_amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
 
-                    <!-- 物流信息 -->
-                    {% if order.package %}
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5>物流信息</h5>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th style="width: 150px;">物流商：</th>
-                                    <td>{{ order.package.service.carrier.name_zh }}</td>
-                                </tr>
-                                <tr>
-                                    <th>物流服务：</th>
-                                    <td>{{ order.package.service.service_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>运单号：</th>
-                                    <td>{{ order.package.tracking_no|default:"未获取" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>物流状态：</th>
-                                    <td>
-                                        {% if order.package.pkg_status_code == '1' %}
-                                            <span class="badge badge-success">已发货</span>
-                                        {% else %}
-                                            <span class="badge badge-warning">未发货</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+            <div class="mt-4">
+                <div class="btn-list justify-content-end">
+                    <a href="{% url 'trade:order_list' %}" class="btn btn-link">返回列表</a>
+                    {% if order.status == 'pending' %}
+                    <form action="{% url 'trade:process_order' order.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">开始处理</button>
+                    </form>
+                    {% elif order.status == 'processing' %}
+                    <form action="{% url 'trade:ship_order' order.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">标记发货</button>
+                    </form>
                     {% endif %}
-
-                    <!-- 备注信息 -->
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="card-title mb-0">买家备注</h6>
-                                </div>
-                                <div class="card-body">
-                                    {{ order.buyer_remark|default:"无" }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="card-title mb-0">系统备注</h6>
-                                </div>
-                                <div class="card-body">
-                                    {{ order.system_remark|default:"无" }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="card-title mb-0">客服备注</h6>
-                                </div>
-                                <div class="card-body">
-                                    {{ order.cs_remark|default:"无" }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {% if order.status != 'cancelled' and order.status != 'completed' %}
+                    <form action="{% url 'trade:cancel_order' order.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('确定要取消该订单吗？')">取消订单</button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

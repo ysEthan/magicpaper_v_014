@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">{% if form.instance.pk %}编辑生产订单{% else %}新增生产订单{% endif %}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <form class="card" method="post">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h3 class="card-title">订单信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">订单类型</label>
+                                    {{ form.order_type }}
+                                    {% if form.order_type.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.order_type.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">SKU</label>
+                                    {{ form.sku }}
+                                    {% if form.sku.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.sku.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">生产数量</label>
+                                    {{ form.quantity }}
+                                    {% if form.quantity.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.quantity.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label">生产工厂</label>
+                                    {{ form.factory }}
+                                    {% if form.factory.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.factory.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label">单价</label>
+                                    {{ form.unit_price }}
+                                    {% if form.unit_price.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.unit_price.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label">跟单员</label>
+                                    {{ form.follower }}
+                                    {% if form.follower.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.follower.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label">预计完成日期</label>
+                                    {{ form.expected_date }}
+                                    {% if form.expected_date.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.expected_date.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="mb-3">
+                                    <label class="form-label">预计交货日期</label>
+                                    {{ form.delivery_date }}
+                                    {% if form.delivery_date.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.delivery_date.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">备注</label>
+                                    {{ form.remark }}
+                                    {% if form.remark.errors %}
+                                    <div class="invalid-feedback" style="display: block;">
+                                        {{ form.remark.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <div class="d-flex">
+                            <a href="{% url 'manufacturing:production_order_list' %}" class="btn btn-link">取消</a>
+                            <button type="submit" class="btn btn-primary ms-auto">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // SKU选择器的搜索功能
+        const skuSelect = document.querySelector('select[name="sku"]');
+        if (skuSelect) {
+            $(skuSelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '请选择SKU',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        // 工厂选择器的搜索功能
+        const factorySelect = document.querySelector('select[name="factory"]');
+        if (factorySelect) {
+            $(factorySelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '请选择工厂',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        // 跟单员选择器的搜索功能
+        const followerSelect = document.querySelector('select[name="follower"]');
+        if (followerSelect) {
+            $(followerSelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '请选择跟单员',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 
